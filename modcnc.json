@@ -8,23 +8,6 @@
     "ip": "10.42.0.225",
     "plugins": [
         {
-            "type": "spi",
-            "pins": {
-                "mosi": {
-                    "pin": "P6"
-                },
-                "miso": {
-                    "pin": "M8"
-                },
-                "sclk": {
-                    "pin": "T5"
-                },
-                "sel": {
-                    "pin": "R6"
-                }
-            }
-        },
-        {
             "type": "blink",
             "pins": {
                 "led": {
@@ -35,6 +18,40 @@
                             "invert": true
                         }
                     ]
+                }
+            }
+        },
+        {
+            "type": "w5500",
+            "pins": {
+                "mosi": {
+                    "pin": "G10"
+                },
+                "miso": {
+                    "pin": "H16"
+                },
+                "sclk": {
+                    "pin": "H11"
+                },
+                "sel": {
+                    "pin": "F12"
+                }
+            }
+        },
+        {
+            "type": "shiftreg",
+            "pins": {
+                "out": {
+                    "pin": "G2"
+                },
+                "in": {
+                    "pin": "K9"
+                },
+                "sclk": {
+                    "pin": "H12"
+                },
+                "load": {
+                    "pin": "R9"
                 }
             }
         }
@@ -234,6 +251,61 @@
                 "bit9": {
                     "type": "bitout",
                     "name": "bit9"
+                }
+            }
+        },
+        {
+            "slot": "slot4",
+            "module": "mod-stepdir",
+            "setup": {
+                "enable": {
+                    "type": "bitout",
+                    "name": "enable1",
+                    "pins": {
+                        "bit": {
+                            "modifier": [
+                                {
+                                    "type": "invert"
+                                },
+                                {
+                                    "type": "onerror"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "joint-0": {
+                    "name": "joint-3",
+                    "type": "stepdir",
+                    "is_joint": true
+                },
+                "joint-1": {
+                    "name": "joint-4",
+                    "type": "stepdir",
+                    "is_joint": true
+                },
+                "joint-2": {
+                    "name": "joint-5",
+                    "type": "stepdir",
+                    "is_joint": true
+                }
+            }
+        },
+        {
+            "slot": "slot5",
+            "module": "mod-quadencz",
+            "setup": {
+                "quadencoderz1": {
+                    "type": "quadencoderz",
+                    "name": "quadencoderz6"
+                },
+                "quadencoderz2": {
+                    "type": "quadencoderz",
+                    "name": "quadencoderz7"
+                },
+                "quadencoderz3": {
+                    "type": "quadencoderz",
+                    "name": "quadencoderz8"
                 }
             }
         }
