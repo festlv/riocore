@@ -1,0 +1,99 @@
+{
+    "name": "Colorlight-i5",
+    "description": "Colorlight i5",
+    "boardcfg": "colorlight-i5",
+    "axis": 2,
+    "machinetype": "mill",
+    "protocol": "UDP",
+    "ip": "10.42.0.225",
+    "plugins": [
+        {
+            "type": "bitin",
+            "name": "X-Home",
+            "pins": {
+                "bit": {
+                    "pin": "F20",
+                    "pullup": true,
+                    "modifier": [
+                        {
+                            "type": "invert"
+                        }
+                    ]
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "joint.0.home-sw-in"
+                }
+            }
+        },
+        {
+            "type": "stepdir",
+            "name": "X-Axis",
+            "pins": {
+                "step": {
+                    "pin": "D3"
+                },
+                "dir": {
+                    "pin": "B4"
+                },
+                "en": {
+                    "pin": "C3"
+                }
+            },
+            "is_joint": true,
+            "joint": {
+                "scale": 2000.0,
+                "max_velocity": 250.0
+            }
+        },
+        {
+            "type": "spi",
+            "pins": {
+                "mosi": {
+                    "pin": "Y2"
+                },
+                "miso": {
+                    "pin": "U1"
+                },
+                "sclk": {
+                    "pin": "R1"
+                },
+                "sel": {
+                    "pin": "T1"
+                }
+            }
+        },
+        {
+            "type": "blink",
+            "pins": {
+                "led": {
+                    "pin": "U16",
+                    "modifier": [
+                        {
+                            "type": "onerror",
+                            "invert": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "enable",
+            "type": "bitout",
+            "pins": {
+                "bit": {
+                    "pin": "C4",
+                    "modifier": [
+                        {
+                            "type": "invert"
+                        },
+                        {
+                            "type": "onerror"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

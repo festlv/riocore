@@ -1,0 +1,61 @@
+{
+  "comment": "Stepdir module",
+  "plugins": [
+    {
+      "type": "bitout",
+      "name": "enable",
+      "pins": {
+        "bit": {
+          "pin": "P1",
+          "modifier": [
+              {
+                  "type": "invert"
+              },
+              {
+                  "type": "onerror"
+              }
+          ]
+        }
+      }
+    },
+        {
+      "name": "joint-0",
+      "type": "stepdir",
+      "pins": {
+        "step": {
+          "pin": "P2"
+        },
+        "dir": {
+          "pin": "P3"
+        }
+      },
+      "is_joint": true
+    },
+    {
+      "name": "joint-1",
+      "type": "stepdir",
+      "pins": {
+        "step": {
+          "pin": "P4"
+        },
+        "dir": {
+          "pin": "P5"
+        }
+      },
+      "is_joint": true
+    },
+    {
+      "name": "joint-2",
+      "type": "stepdir",
+      "pins": {
+        "step": {
+          "pin": "P6"
+        },
+        "dir": {
+          "pin": "P7"
+        }
+      },
+      "is_joint": true
+    }
+  ]
+}

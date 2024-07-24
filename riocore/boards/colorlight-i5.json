@@ -1,0 +1,14 @@
+{
+    "name": "Colorlight-i5",
+    "description": "ECP5 on Colorlight i5 module",
+    "toolchain": "icestorm",
+    "family": "ecp5",
+    "type": "25k",
+    "package": "CABGA381",
+    "flashcmd": "openFPGALoader --cable cmsisdap --write-flash --unprotect-flash --bitstream rio.bit",
+    "clock": {
+        "osc": "25000000",
+        "speed": "100000000",
+        "pin": "P3"
+    }
+}

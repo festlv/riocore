@@ -1,0 +1,241 @@
+{
+    "name": "Modcnc",
+    "description": "Colorlight i5",
+    "boardcfg": "ice40-baseboard",
+    "axis": 3,
+    "machinetype": "mill",
+    "protocol": "UDP",
+    "ip": "10.42.0.225",
+    "plugins": [
+        {
+            "type": "spi",
+            "pins": {
+                "mosi": {
+                    "pin": "P6"
+                },
+                "miso": {
+                    "pin": "M8"
+                },
+                "sclk": {
+                    "pin": "T5"
+                },
+                "sel": {
+                    "pin": "R6"
+                }
+            }
+        },
+        {
+            "type": "blink",
+            "pins": {
+                "led": {
+                    "pin": "P7",
+                    "modifier": [
+                        {
+                            "type": "onerror",
+                            "invert": true
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "modules": [
+        {
+            "slot": "slot0",
+            "module": "mod-digin",
+            "setup": {
+                "bit0": {
+                    "type": "bitin",
+                    "name": "bit0",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit1": {
+                    "type": "bitin",
+                    "name": "bit1",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit2": {
+                    "type": "bitin",
+                    "name": "bit2",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit3": {
+                    "type": "bitin",
+                    "name": "bit3",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit4": {
+                    "type": "bitin",
+                    "name": "bit4",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit5": {
+                    "type": "bitin",
+                    "name": "bit5",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit6": {
+                    "type": "bitin",
+                    "name": "bit6",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit7": {
+                    "type": "bitin",
+                    "name": "bit7",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit8": {
+                    "type": "bitin",
+                    "name": "bit8",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                },
+                "bit9": {
+                    "type": "bitin",
+                    "name": "bit9",
+                    "pins": {
+                        "bit": {
+                            "pullup": true
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "slot": "slot1",
+            "module": "mod-stepdir",
+            "setup": {
+                "enable": {
+                    "type": "bitout",
+                    "name": "enable",
+                    "pins": {
+                        "bit": {
+                            "modifier": [
+                                {
+                                    "type": "invert"
+                                },
+                                {
+                                    "type": "onerror"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "joint-0": {
+                    "name": "joint-0",
+                    "type": "stepdir",
+                    "is_joint": true
+                },
+                "joint-1": {
+                    "name": "joint-1",
+                    "type": "stepdir",
+                    "is_joint": true
+                },
+                "joint-2": {
+                    "name": "joint-2",
+                    "type": "stepdir",
+                    "is_joint": true
+                }
+            }
+        },
+        {
+            "slot": "slot2",
+            "module": "mod-quadencz",
+            "setup": {
+                "quadencoderz1": {
+                    "type": "quadencoderz",
+                    "name": "quadencoderz1"
+                },
+                "quadencoderz2": {
+                    "type": "quadencoderz",
+                    "name": "quadencoderz2"
+                },
+                "quadencoderz3": {
+                    "type": "quadencoderz",
+                    "name": "quadencoderz3"
+                }
+            }
+        },
+        {
+            "slot": "slot3",
+            "module": "mod-digout",
+            "setup": {
+                "bit0": {
+                    "type": "bitout",
+                    "name": "bit0"
+                },
+                "bit1": {
+                    "type": "bitout",
+                    "name": "bit1"
+                },
+                "bit2": {
+                    "type": "bitout",
+                    "name": "bit2"
+                },
+                "bit3": {
+                    "type": "bitout",
+                    "name": "bit3"
+                },
+                "bit4": {
+                    "type": "bitout",
+                    "name": "bit4"
+                },
+                "bit5": {
+                    "type": "bitout",
+                    "name": "bit5"
+                },
+                "bit6": {
+                    "type": "bitout",
+                    "name": "bit6"
+                },
+                "bit7": {
+                    "type": "bitout",
+                    "name": "bit7"
+                },
+                "bit8": {
+                    "type": "bitout",
+                    "name": "bit8"
+                },
+                "bit9": {
+                    "type": "bitout",
+                    "name": "bit9"
+                }
+            }
+        }
+    ]
+}

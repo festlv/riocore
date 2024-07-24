@@ -1,0 +1,106 @@
+{
+  "comment": "Digital outputs",
+  "plugins": [
+    {
+        "type": "bitout",
+        "name": "bit0",
+        "pins": {
+          "bit": {
+            
+            "pin": "P1"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit1",
+        "pins": {
+          "bit": {
+            
+            "pin": "P2"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit2",
+        "pins": {
+          "bit": {
+            
+            "pin": "P3"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit3",
+        "pins": {
+          "bit": {
+            
+            "pin": "P4"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit4",
+        "pins": {
+          "bit": {
+            
+            "pin": "P5"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit5",
+        "pins": {
+          "bit": {
+            
+            "pin": "P6"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit6",
+        "pins": {
+          "bit": {
+            
+            "pin": "P7"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit7",
+        "pins": {
+          "bit": {
+            
+            "pin": "P8"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit8",
+        "pins": {
+          "bit": {
+            
+            "pin": "P9"
+          }
+        }
+      },
+      {
+        "type": "bitout",
+        "name": "bit9",
+        "pins": {
+          "bit": {
+            
+            "pin": "P10"
+          }
+        }
+      }
+  ]
+
+}

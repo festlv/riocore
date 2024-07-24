@@ -1,0 +1,106 @@
+{
+  "comment": "Digital inputs",
+  "plugins": [
+    {
+        "type": "bitin",
+        "name": "bit0",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P1"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit1",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P2"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit2",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P3"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit3",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P4"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit4",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P5"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit5",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P6"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit6",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P7"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit7",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P8"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit8",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P9"
+          }
+        }
+      },
+      {
+        "type": "bitin",
+        "name": "bit9",
+        "pins": {
+          "bit": {
+            "pullup": true,
+            "pin": "P10"
+          }
+        }
+      }
+  ]
+
+}

@@ -1,0 +1,50 @@
+{
+  "comment": "Quadencoder with Index",
+  "plugins": [
+        {
+            "type": "quadencoderz",
+            "name": "quadencoderz1",
+            "pins": {
+                "a": {
+                    "pin": "P1"
+                },
+                "b": {
+                    "pin": "P2"
+                },
+                "z": {
+                    "pin": "P3"
+                }
+            }
+        },
+        {
+          "type": "quadencoderz",
+          "name": "quadencoderz2",
+          "pins": {
+              "a": {
+                  "pin": "P4"
+              },
+              "b": {
+                  "pin": "P5"
+              },
+              "z": {
+                  "pin": "P6"
+              }
+          }
+      },
+      {
+        "type": "quadencoderz",
+        "name": "quadencoderz3",
+        "pins": {
+            "a": {
+                "pin": "P7"
+            },
+            "b": {
+                "pin": "P8"
+            },
+            "z": {
+                "pin": "P9"
+            }
+        }
+    }
+    ]
+}
