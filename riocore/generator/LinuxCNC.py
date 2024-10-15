@@ -292,7 +292,7 @@ class LinuxCNC:
 
                             else:
                                 # output_postgui_tmp.append(f"net {signal_prefix}{network}-in-{in_n:02d} <= {pin_in}")
-                                signal = pin2sig(output_hal_tmp, pin_in, f"{signal_prefix}{network}-in-{in_n:02d}")
+                                signal = pin2sig(output_postgui_tmp, pin_in, f"{signal_prefix}{network}-in-{in_n:02d}")
                                 output_postgui_tmp.append(f"net {signal} => logic.{network}.in-{in_n:02d}")
 
                         vs_flag = False
@@ -673,6 +673,9 @@ class LinuxCNC:
                 elif position_halname and feedback_halname:
                     pid_setup = self.PID_DEFAULTS.copy()
                     for key, value in pid_setup.items():
+                        setup_value = joint_config.get(f"PID_{key.upper()}")
+                        if setup_value:
+                            value = setup_value
                         output.append(f"{key:18s} = {value}")
                     output.append("")
                     for key, value in joint_setup.items():
@@ -1272,6 +1275,7 @@ class LinuxCNC:
                         if halname in self.feedbacks:
                             continue
 
+                        dtype = None
                         if (netname and not virtual) or setp:
                             if direction == "input":
                                 section = displayconfig.get("section", "inputs").lower()
