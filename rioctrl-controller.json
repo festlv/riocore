@@ -86,8 +86,8 @@
                     "joint": {
                         "scale": 2000.0,
                         "max_velocity": 250.0,
-                        "max_acceleration": 2500.0,
-                        "stepgen_maxaccel": 2500.0
+                        "max_acceleration": 1250.0,
+                        "stepgen_maxaccel": 1250.0
                     },
                     "axis": "X"
                 },
@@ -98,8 +98,8 @@
                     "joint": {
                         "scale": -1000.0,
                         "max_velocity": 250.0,
-                        "max_acceleration": 2500.0,
-                        "stepgen_maxaccel": 2500.0
+                        "max_acceleration": 1250.0,
+                        "stepgen_maxaccel": 1250.0
                     },
                     "axis": "Y"
                 },
@@ -142,10 +142,14 @@
                             "setp": ""
                         },
                         "position": {
-                            "scale": 500.0,
+                            "scale": 2000.0,
                             "net": "",
                             "function": "",
-                            "setp": ""
+                            "setp": "",
+                            "display": {
+                                "title": "X encoder",
+                                "type": "number"
+                            }
                         },
                         "rps": {
                             "net": "",
@@ -175,7 +179,7 @@
                             "setp": ""
                         },
                         "position": {
-                            "scale": -500.0,
+                            "scale": -1000.0,
                             "net": "",
                             "function": "",
                             "setp": ""
@@ -642,10 +646,16 @@
         "machinetype": "mill",
         "ini": {
             "DISPLAY": {
-                "MAX_LINEAR_VELOCITY": 250.0
+                "MAX_LINEAR_VELOCITY": 166.667,
+                "EDITOR": "nvim-qt",
+                "PROGRAM_PREFIX": "~/",
+                "DEFAULT_LINEAR_VELOCITY": 50.0
             },
             "TRAJ": {
                 "MAX_LINEAR_VELOCITY": 250.0
+            },
+            "EMCMOT": {
+                "SERVO_PERIOD": 500000
             }
         }
     }
