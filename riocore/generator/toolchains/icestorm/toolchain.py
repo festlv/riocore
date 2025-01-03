@@ -15,12 +15,22 @@ class Toolchain:
             "url": "https://github.com/YosysHQ/oss-cad-suite-build",
             "info": "Icestorm (yosys/nextpnr)",
             "description": "",
-            "install": """```
+            "install": """### on Intel/AMD systems
+```
 mkdir -p /opt
 cd /opt
 wget "https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2024-09-10/oss-cad-suite-linux-x64-20240910.tgz"
 tar xzvpf oss-cad-suite-linux-x64-20240910.tgz
 rm -rf oss-cad-suite-linux-x64-20240910.tgz
+```
+
+### on Raspberry-PI 4 systems
+```
+mkdir -p /opt
+cd /opt
+wget "https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2024-09-10/oss-cad-suite-linux-arm64-20240910.tgz"
+tar xzvpf oss-cad-suite-linux-arm64-20240910.tgz
+rm -rf oss-cad-suite-linux-arm64-20240910.tgz
 ```
 """,
         }
@@ -106,7 +116,7 @@ rm -rf oss-cad-suite-linux-x64-20240910.tgz
         elif self.config["type"] == "gatemate":
             makefile_data.append("net/$(PROJECT).v: $(VERILOGS)")
             makefile_data.append("	mkdir -p net/")
-            makefile_data.append(f"	yosys -q -l yosys.log -p 'read_verilog $(VERILOGS) ; synth_$(FAMILY) -top $(TOP) -nomx8 -json $(PROJECT).json -vlog net/$(PROJECT).v'")
+            makefile_data.append("	yosys -q -l yosys.log -p 'read_verilog $(VERILOGS) ; synth_$(FAMILY) -top $(TOP) -nomx8 -json $(PROJECT).json -vlog net/$(PROJECT).v'")
         elif family in {"gowin", "himbaechel"}:
             makefile_data.append("$(PROJECT).json: $(VERILOGS)")
             makefile_data.append("	yosys -q -l yosys.log -p 'synth_gowin -noalu -nowidelut -top $(TOP) -json $(PROJECT).json' $(VERILOGS)")
@@ -134,7 +144,7 @@ rm -rf oss-cad-suite-linux-x64-20240910.tgz
             makefile_data.append("")
         elif family == "gatemate":
             makefile_data.append("$(PROJECT).bit: net/$(PROJECT).v pins.ccf")
-            makefile_data.append(f"	p_r -i net/$(PROJECT).v -o $(PROJECT) -ccf pins.ccf -cCP")
+            makefile_data.append("	p_r -i net/$(PROJECT).v -o $(PROJECT) -ccf pins.ccf -cCP")
             makefile_data.append('	@echo ""')
             makefile_data.append('	@grep -B 1 "%$$" nextpnr.log')
             makefile_data.append('	@echo ""')

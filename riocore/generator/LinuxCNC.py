@@ -30,12 +30,12 @@ class LinuxCNC:
         "FF0": 0.0,
         "FF1": 0.0,
         "FF2": 0.0,
-        "DEADBAND": 0.01,
+        "DEADBAND": 0.0001,
         "MAXOUTPUT": 300,
     }
     JOINT_DEFAULTS = {
         "TYPE": "LINEAR",
-        "FERROR": 1.0,
+        "FERROR": 2.0,
         "MIN_LIMIT": -500.0,
         "MAX_LIMIT": 1500.0,
         "MAX_VELOCITY": 40.0,
@@ -65,7 +65,6 @@ class LinuxCNC:
             "EDITOR": "gedit",
             "POSITION_OFFSET": "RELATIVE",
             "POSITION_FEEDBACK": "ACTUAL",
-            "PYVCP": "rio-gui.xml",
             "PREFERENCE_FILE_PATH": None,
             "ARCDIVISION": 64,
             "GRIDS": "10mm 20mm 50mm 100mm",
@@ -149,7 +148,7 @@ class LinuxCNC:
         },
     }
 
-    POSTGUI_COMPONENTS = ("pyvcp", "qtdragon", "axisui", "mpg", "vismach", "kinstype", "melfagui", "fanuc_200f")
+    POSTGUI_COMPONENTS = ("pyvcp", "qtdragon", "qtvcp", "axisui", "mpg", "vismach", "kinstype", "melfagui", "fanuc_200f")
 
     def __init__(self, project):
         self.postgui_call_list = []
@@ -344,6 +343,8 @@ class LinuxCNC:
         return (output_hal, output_postgui)
 
     def startscript(self):
+        jdata = self.project.config["jdata"]
+        startup = jdata.get("startup")
         output = ["#!/bin/sh"]
         output.append("")
         output.append("set -e")
@@ -351,17 +352,14 @@ class LinuxCNC:
         output.append("")
         output.append('DIRNAME=`dirname "$0"`')
         output.append("")
+        if startup:
+            output.append(startup)
+            output.append("")
         output.append('linuxcnc "$DIRNAME/rio.ini" $@')
         output.append("")
         os.makedirs(self.component_path, exist_ok=True)
         target = f"{self.component_path}/start.sh"
         open(target, "w").write("\n".join(output))
-        os.chmod(target, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
-
-    def precompile(self):
-        source = f"{riocore_path}/files/rio_precompile"
-        target = f"{self.component_path}/rio_precompile"
-        shutil.copy(source, target)
         os.chmod(target, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
 
     def generator(self):
@@ -371,7 +369,6 @@ class LinuxCNC:
             self.networks[network] = net
 
         self.startscript()
-        #self.precompile()
         self.component()
         self.hal()
         self.gui()
@@ -529,7 +526,9 @@ class LinuxCNC:
                     if axis_name == "Z":
                         ini_setup["HALUI"]["MDI_COMMAND|Touch-Z"] = "o<z_touch> call"
 
-        if gui == "qtdragon":
+        if gui == "axis":
+            ini_setup["DISPLAY"]["PYVCP"] = "rio-gui.xml"
+        elif gui == "qtdragon":
             qtdragon_setup = {
                 "DISPLAY": {
                     "DISPLAY": "qtvcp qtdragon",
@@ -537,9 +536,9 @@ class LinuxCNC:
                     "MDI_HISTORY_FILE": "mdi_history.dat",
                     "MACHINE_LOG_PATH": "machine_log.dat",
                     "LOG_FILE": "qtdragon.log",
-                    "EMBED_TAB_NAME|RIO": "RIO",
-                    "EMBED_TAB_COMMAND|RIO": "qtvcp rio-gui",
-                    "EMBED_TAB_LOCATION|RIO": "tabWidget_utilities",
+                    # "EMBED_TAB_NAME|RIO": "RIO",
+                    # "EMBED_TAB_COMMAND|RIO": "qtvcp rio-gui",
+                    # "EMBED_TAB_LOCATION|RIO": "tabWidget_utilities",
                     "ICON": "silver_dragon.png",
                     "INTRO_GRAPHIC": "silver_dragon.png",
                     "INTRO_TIME": "2",
@@ -666,7 +665,7 @@ class LinuxCNC:
                 output.append(f"[JOINT_{joint}]")
                 output.append(f"# {plugin_instance.instances_name}")
                 if position_mode == "absolute":
-                    for key, value in joint_setup.items():
+                    for key, value in joint_config.items():
                         if key in self.JOINT_DEFAULTS:
                             output.append(f"{key:18s} = {value}")
 
@@ -678,7 +677,7 @@ class LinuxCNC:
                             value = setup_value
                         output.append(f"{key:18s} = {value}")
                     output.append("")
-                    for key, value in joint_setup.items():
+                    for key, value in joint_config.items():
                         if key in self.JOINT_DEFAULTS:
                             if key.endswith("_VELOCITY"):
                                 output.append(f"# {value} * 60.0 = {float(value) * 60.0:0.1f} units/min")
@@ -785,10 +784,10 @@ class LinuxCNC:
         embed_vismach = linuxcnc_config.get("embed_vismach")
         gui = linuxcnc_config.get("gui", "axis")
         ini_setup = self.ini_defaults(self.project.config["jdata"], num_joints=self.num_joints, axis_dict=self.axis_dict)
-        if gui == "qtdragon":
-            self.gui_gen = qtdragon()
-        elif gui == "axis":
+        if gui == "axis":
             self.gui_gen = axis()
+        # elif gui == "qtdragon":
+        #    self.gui_gen = qtvcp()
         else:
             self.gui_gen = None
 
@@ -1421,8 +1420,10 @@ class LinuxCNC:
         self.loadrts.append("# load the realtime components")
         self.loadrts.append("loadrt [KINS]KINEMATICS")
         self.loadrts.append("loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS num_dio=[EMCMOT]NUM_DIO num_aio=[EMCMOT]NUM_AIO")
-        #self.loadrts.append("loadusr -W ./rio_precompile")
         self.loadrts.append("loadrt rio")
+        self.loadrts.append("")
+        self.loadrts.append("# if you need to test rio without hardware, set it to 1")
+        self.loadrts.append("setp rio.sys-simulation 0")
         self.loadrts.append("")
 
         num_pids = self.num_joints
@@ -1444,10 +1445,12 @@ class LinuxCNC:
             if plugin_instance.plugin_setup.get("is_joint", False) is False:
                 for signal_name, signal_config in plugin_instance.signals().items():
                     direction = signal_config["direction"]
-                    netname = signal_config["netname"]
-                    if netname == "iocontrol.0.emc-enable-in" and direction == "input":
-                        has_estop = True
-                        break
+                    netname = signal_config["netname"] or ""
+                    for net in netname.split(","):
+                        net = net.strip()
+                        if net == "iocontrol.0.emc-enable-in" and direction == "input":
+                            has_estop = True
+                            break
         if not has_estop:
             self.hal_net_add("rio.sys-status", "iocontrol.0.emc-enable-in")
 
@@ -1580,11 +1583,13 @@ class LinuxCNC:
                         if direction == "inout":
                             self.loadrts.append(f"net rios.{halname} {rprefix}.{halname} <=> {netname}")
                         elif direction == "input":
-                            net_type = halpins.LINUXCNC_SIGNALS[direction].get(netname, {}).get("type", float)
-                            if net_type == int:
-                                self.hal_net_add(f"{rprefix}.{halname}-s32", netname)
-                            else:
-                                self.hal_net_add(f"{rprefix}.{halname}", netname)
+                            for net in netname.split(","):
+                                net = net.strip()
+                                net_type = halpins.LINUXCNC_SIGNALS[direction].get(net, {}).get("type", float)
+                                if net_type is int:
+                                    self.hal_net_add(f"{rprefix}.{halname}-s32", net)
+                                else:
+                                    self.hal_net_add(f"{rprefix}.{halname}", net)
                         elif direction == "output":
                             target = f"{rprefix}.{halname}"
                             if " and " in netname or " or " in netname:
@@ -1688,6 +1693,7 @@ class LinuxCNC:
         output.append("    hal_bit_t   *sys_enable;")
         output.append("    hal_bit_t   *sys_enable_request;")
         output.append("    hal_bit_t   *sys_status;")
+        output.append("    hal_bit_t   *sys_simulation;")
         output.append("    hal_float_t *duration;")
 
         if self.project.multiplexed_output:
@@ -1773,6 +1779,7 @@ class LinuxCNC:
         output.append('    if (retval = hal_pin_bit_newf(HAL_OUT, &(data->sys_status), comp_id, "%s.sys-status", prefix) != 0) error_handler(retval);')
         output.append('    if (retval = hal_pin_bit_newf(HAL_IN,  &(data->sys_enable), comp_id, "%s.sys-enable", prefix) != 0) error_handler(retval);')
         output.append('    if (retval = hal_pin_bit_newf(HAL_IN,  &(data->sys_enable_request), comp_id, "%s.sys-enable-request", prefix) != 0) error_handler(retval);')
+        output.append('    if (retval = hal_pin_bit_newf(HAL_IN,  &(data->sys_simulation), comp_id, "%s.sys-simulation", prefix) != 0) error_handler(retval);')
         output.append('    if (retval = hal_pin_float_newf(HAL_OUT,  &(data->duration), comp_id, "%s.duration", prefix) != 0) error_handler(retval);')
         output.append("    *data->duration = rtapi_get_time();")
         for plugin_instance in self.project.plugin_instances:
@@ -1831,6 +1838,7 @@ class LinuxCNC:
         return output
 
     def component_signal_converter(self):
+        self.comp_signals = []
         output = []
         output.append("// Generated by component_signal_converter()")
         output.append("// output: SIGOUT -> calc -> VAROUT -> txBuffer")
@@ -1933,6 +1941,8 @@ class LinuxCNC:
                             virtual = signal_config.get("virtual")
                             if virtual:
                                 continue
+
+                            self.comp_signals.append(varname)
 
                             # TODO: fixing for wled plugin
                             check = varname.split("_")[-1].strip()
@@ -2123,6 +2133,12 @@ class LinuxCNC:
                                     output.append("    float raw_value = value;")
                                     output.append("    value = value + offset;")
                                     output.append("    value = value / scale;")
+
+                                    if varname.endswith("_POSITION") and f"SIGOUT_{var_prefix}_VELOCITY" in self.comp_signals:
+                                        output.append("    if (*data->sys_simulation == 1) {")
+                                        output.append(f"        value = *data->{varname} + *data->SIGOUT_{var_prefix}_VELOCITY / 1000.0;")
+                                        output.append("    }")
+
                                     output.append(f"    *data->{varname}_ABS = abs(value);")
                                     output.append(f"    *data->{varname}_S32 = value;")
                                     output.append(f"    *data->{varname}_U32_ABS = abs(value);")
@@ -2376,7 +2392,7 @@ class LinuxCNC:
 
         output += self.component_variables()
 
-        generic_spi = jdata = self.project.config["jdata"].get("generic_spi", False)
+        generic_spi = self.project.config["jdata"].get("generic_spi", False)
         if protocol == "SPI" and generic_spi is True:
             for ppath in glob.glob(f"{riocore_path}/interfaces/*/*.c_generic"):
                 if protocol == ppath.split("/")[-2]:
@@ -2443,49 +2459,53 @@ class LinuxCNC:
         output.append("    if (*data->sys_enable == 1 && *data->sys_status == 1) {")
         output.append("        pkg_counter += 1;")
         output.append("        convert_outputs();")
-        output.append("        write_txbuffer(txBuffer);")
+        output.append("        if (*data->sys_simulation != 1) {")
+        output.append("            write_txbuffer(txBuffer);")
 
         if protocol == "UART":
-            output.append("        uart_trx(txBuffer, rxBuffer, BUFFER_SIZE);")
+            output.append("            uart_trx(txBuffer, rxBuffer, BUFFER_SIZE);")
         elif protocol == "SPI":
-            output.append("        spi_trx(txBuffer, rxBuffer, BUFFER_SIZE);")
+            output.append("            spi_trx(txBuffer, rxBuffer, BUFFER_SIZE);")
         elif protocol == "UDP":
-            output.append("        ret = udp_trx(txBuffer, rxBuffer, BUFFER_SIZE);")
+            output.append("            ret = udp_trx(txBuffer, rxBuffer, BUFFER_SIZE);")
         else:
             print("ERROR: unsupported interface")
             sys.exit(1)
 
         if protocol == "UDP":
-            output.append("        if (ret == BUFFER_SIZE && rxBuffer[0] == 97 && rxBuffer[1] == 116 && rxBuffer[2] == 97 && rxBuffer[3] == 100) {")
+            output.append("            if (ret == BUFFER_SIZE && rxBuffer[0] == 97 && rxBuffer[1] == 116 && rxBuffer[2] == 97 && rxBuffer[3] == 100) {")
         else:
-            output.append("        if (rxBuffer[0] == 97 && rxBuffer[1] == 116 && rxBuffer[2] == 97 && rxBuffer[3] == 100) {")
-        output.append("            if (err_counter > 0) {")
-        output.append("                err_counter = 0;")
+            output.append("            if (rxBuffer[0] == 97 && rxBuffer[1] == 116 && rxBuffer[2] == 97 && rxBuffer[3] == 100) {")
+        output.append("                if (err_counter > 0) {")
+        output.append("                    err_counter = 0;")
         output.append('                rtapi_print("recovered..\\n");')
-        output.append("            }")
-        output.append("            read_rxbuffer(rxBuffer);")
-        output.append("            convert_inputs();")
-        output.append("        } else {")
-        output.append("            err_counter += 1;")
+        output.append("                }")
+        output.append("                read_rxbuffer(rxBuffer);")
+        output.append("                convert_inputs();")
+        output.append("            } else {")
+        output.append("                err_counter += 1;")
         if protocol == "UDP":
-            output.append("            if (ret != BUFFER_SIZE) {")
-            output.append('                rtapi_print("wronng data size (%i %i/3): ", ret, err_counter);')
-            output.append("            } else {")
-            output.append('                rtapi_print("wronng header (%i/3): ", err_counter);')
-            output.append("            }")
+            output.append("                if (ret != BUFFER_SIZE) {")
+            output.append('                rtapi_print("wrong data size (%i %i/3): ", ret, err_counter);')
+            output.append("                } else {")
+            output.append('                rtapi_print("wrong header (%i/3): ", err_counter);')
+            output.append("                }")
         else:
             output.append('            rtapi_print("wronng data (%i/3): ", err_counter);')
         if protocol == "UDP":
-            output.append("            for (i = 0; i < ret; i++) {")
+            output.append("                for (i = 0; i < ret; i++) {")
         else:
-            output.append("            for (i = 0; i < BUFFER_SIZE; i++) {")
+            output.append("                for (i = 0; i < BUFFER_SIZE; i++) {")
         output.append('                rtapi_print("%d ",rxBuffer[i]);')
-        output.append("            }")
+        output.append("                }")
         output.append('            rtapi_print("\\n");')
-        output.append("            if (err_counter > 3) {")
+        output.append("                if (err_counter > 3) {")
         output.append('                rtapi_print("too many errors..\\n");')
-        output.append("                *data->sys_status = 0;")
+        output.append("                    *data->sys_status = 0;")
+        output.append("                }")
         output.append("            }")
+        output.append("        } else {")
+        output.append("            convert_inputs();")
         output.append("        }")
         output.append("    } else {")
         output.append("        *data->sys_status = 0;")
@@ -2583,7 +2603,9 @@ class LinuxCNC:
                     home_sequence_default = 2
                     if axis_name == "Z":
                         home_sequence_default = 1
-                home_sequence = int(joint_config.get("home_sequence", home_sequence_default))
+                home_sequence = joint_config.get("home_sequence", home_sequence_default)
+                if home_sequence == "auto":
+                    home_sequence = home_sequence_default
                 joint_signals = joint_setup["plugin_instance"].signals()
                 velocity = joint_signals.get("velocity")
                 position = joint_signals.get("position")
@@ -2695,7 +2717,7 @@ class LinuxCNC:
                 axis_config[key] = value
 
 
-class qtdragon:
+class qtvcp:
     #
     # wget "https://raw.githubusercontent.com/LinuxCNC/linuxcnc/master/lib/python/qtvcp/designer/install_script"
     #
@@ -2880,7 +2902,7 @@ class qtdragon:
         return cfgxml_data
 
     def draw_button(self, name, halpin, setup={}):
-        return (f"qtdragon.rio-gui.{halpin}", [])
+        return (f"qtvcp.rio-gui.{halpin}", [])
 
     def draw_scale(self, name, halpin, setup={}, vmin=0, vmax=100):
         title = setup.get("title", name)
@@ -2898,7 +2920,7 @@ class qtdragon:
         cfgxml_data.append("     </widget>")
         cfgxml_data.append("    </item>")
         cfgxml_data.append("    <item>")
-        cfgxml_data.append(f'     <widget class="Slider" name="{halpin}">')
+        cfgxml_data.append(f'     <widget class="QSlider" name="{halpin}">')
         cfgxml_data.append('      <property name="maximum">')
         cfgxml_data.append("       <number>100</number>")
         cfgxml_data.append("      </property>")
@@ -2909,7 +2931,7 @@ class qtdragon:
         cfgxml_data.append("    </item>")
         cfgxml_data.append("   </layout>")
         cfgxml_data.append("  </item>")
-        return (f"qtdragon.rio-gui.{halpin}-f", cfgxml_data)
+        return (f"qtvcp.rio-gui.{halpin}-f", cfgxml_data)
 
     def draw_meter(self, name, halpin, setup={}, vmin=0, vmax=100):
         display_max = setup.get("max", vmax)
@@ -2963,7 +2985,7 @@ class qtdragon:
         cfgxml_data.append("      </property>")
         cfgxml_data.append("       </widget>")
         cfgxml_data.append("   </item>")
-        return (f"qtdragon.rio-gui.{halpin}_value", cfgxml_data)
+        return (f"qtvcp.rio-gui.{halpin}_value", cfgxml_data)
 
     def draw_bar(self, name, halpin, setup={}, vmin=0, vmax=100):
         return self.draw_number(name, halpin, setup)
@@ -3007,7 +3029,7 @@ class qtdragon:
         cfgxml_data.append("    </item>")
         cfgxml_data.append("   </layout>")
         cfgxml_data.append("  </item>")
-        return (f"qtdragon.rio-gui.{halpin}", cfgxml_data)
+        return (f"qtvcp.rio-gui.{halpin}", cfgxml_data)
 
     def draw_checkbutton(self, name, halpin, setup={}):
         cfgxml_data = []
@@ -3034,7 +3056,7 @@ class qtdragon:
         cfgxml_data.append("    </item>")
         cfgxml_data.append("   </layout>")
         cfgxml_data.append("  </item>")
-        return (f"qtdragon.rio-gui.{halpin}", cfgxml_data)
+        return (f"qtvcp.rio-gui.{halpin}", cfgxml_data)
 
     def draw_led(self, name, halpin, setup={}):
         cfgxml_data = []
@@ -3091,7 +3113,7 @@ class qtdragon:
         cfgxml_data.append("    </item>")
         cfgxml_data.append("   </layout>")
         cfgxml_data.append("  </item>")
-        return (f"qtdragon.rio-gui.{halpin}", cfgxml_data)
+        return (f"qtvcp.rio-gui.{halpin}", cfgxml_data)
 
 
 class axis:
@@ -3414,8 +3436,8 @@ class axis:
         elif halpin.endswith(".B"):
             cfgxml_data.append('      <on_color>"blue"</on_color>')
         else:
-            cfgxml_data.append('      <on_color>"green"</on_color>')
-        cfgxml_data.append('      <off_color>"black"</off_color>')
+            cfgxml_data.append('      <on_color>"yellow"</on_color>')
+        cfgxml_data.append('      <off_color>"red"</off_color>')
         cfgxml_data.append("    </led>")
         cfgxml_data.append("  </hbox>")
         return (f"pyvcp.{halpin}", cfgxml_data)

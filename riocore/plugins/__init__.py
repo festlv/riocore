@@ -93,7 +93,8 @@ class PluginBase:
         self.TYPE = "io"
         self.INFO = ""
         self.DESCRIPTION = ""
-        self.DESCRIPTION = ""
+        self.KEYWORDS = ""
+        self.ORIGIN = ""
         self.GATEWARE_SUPPORT = True
         self.FIRMWARE_SUPPORT = False
         self.OPTIONS = {}
@@ -142,7 +143,7 @@ class PluginBase:
 
         if self.TYPE == "expansion":
             expansion_id = len(self.expansions)
-            ename = self.plugin_setup.get("name") or f"EXPANSION{expansion_id}"
+            ename = (self.plugin_setup.get("name") or f"EXPANSION{expansion_id}").replace(" ", "_")
             self.expansion_prefix = ename.upper()
             self.expansions.append(self.expansion_prefix)
 
@@ -276,7 +277,7 @@ class PluginBase:
             for key in setup:
                 if key in self.plugin_setup:
                     setup[key] = self.plugin_setup[key]
-            signal_prefix = self.plugin_setup.get("name") or self.instances_name
+            signal_prefix = (self.plugin_setup.get("name") or self.instances_name).replace(" ", "_")
             halname = f"{signal_prefix}.{name}"
             direction_short = setup["direction"].upper().replace("PUT", "")
             signals[name]["signal_prefix"] = signal_prefix
@@ -433,11 +434,11 @@ class PluginBase:
 
         for option_name, option_setup in self.OPTIONS.items():
             default = ""
-            if option_setup["type"] == int:
+            if option_setup["type"] is int:
                 default = 0
-            elif option_setup["type"] == float:
+            elif option_setup["type"] is float:
                 default = 0.0
-            elif option_setup["type"] == bool:
+            elif option_setup["type"] is bool:
                 default = False
             full_config[option_name] = option_setup.get("default", default)
 

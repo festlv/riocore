@@ -1,9 +1,10 @@
 import riocore
 
 from PyQt5 import QtGui, QtSvg
-from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QStandardItem
+from PyQt5.QtCore import QRect, Qt, QSize
+from PyQt5.QtGui import QStandardItem, QPixmap
 from PyQt5.QtWidgets import (
+    QLabel,
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
@@ -33,6 +34,42 @@ STYLESHEET_CHECKBOX_GREEN_RED = """
         background-color: red;
     }
 """
+
+
+class MyQLabel(QLabel):
+    def __init__(self, parent):
+        super(QLabel, self).__init__()
+        self.parent = parent
+        self.pixmap = QPixmap()
+        self.png_data = None
+        self.scale = 1.0
+
+    def mousePressEvent(self, event):
+        x = int(event.pos().x() / self.scale)
+        y = int(event.pos().y() / self.scale)
+        self.parent.on_click(x, y)
+
+    def wheelEvent(self, event: QtGui.QWheelEvent) -> None:
+        delta = event.angleDelta()
+        if delta.y() < 0:
+            if self.scale > 0.1:
+                self.scale -= 0.1
+        else:
+            if self.scale < 10.0:
+                self.scale += 0.1
+        self.load(None)
+
+    def load(self, png_data):
+        if png_data:
+            self.png_data = png_data
+        if self.png_data:
+            self.pixmap.loadFromData(self.png_data, "png")
+            w = int(self.pixmap.size().width() * self.scale)
+            h = int(self.pixmap.size().height() * self.scale)
+            pixmap = self.pixmap.scaled(QSize(w, h), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.setAlignment(Qt.AlignRight | Qt.AlignTop)
+            self.setFixedSize(pixmap.size())
+            self.setPixmap(pixmap)
 
 
 class MyQSvgWidget(QtSvg.QSvgWidget):
@@ -181,6 +218,7 @@ class edit_int(QSpinBox):
 class edit_text(QLineEdit):
     def __init__(self, win, obj, key, cb=None, help_text=None, default=None):
         super().__init__()
+        self.setMaxLength(25)
         self.win = win
         self.cb = cb
         self.obj = obj
@@ -245,16 +283,16 @@ class edit_combobox(QComboBox):
         if help_text:
             self.setToolTip(help_text)
         if key in obj:
-            if obj[key] not in options:
-                options.append(obj[key])
+            if str(obj[key]) not in options:
+                options.append(str(obj[key]))
         else:
             options.append("")
         for option in options:
             self.addItem(option)
         self.setEditable(True)
         if key in obj:
-            if obj[key] in options:
-                self.setCurrentIndex(options.index(obj[key]))
+            if str(obj[key]) in options:
+                self.setCurrentIndex(options.index(str(obj[key])))
             else:
                 print(f"ERROR: {obj[key]} is not a option")
         elif default is not None:
@@ -273,9 +311,9 @@ class edit_combobox(QComboBox):
 
     def change(self):
         if self.currentText() != self.default:
-            self.obj[self.key] = self.currentText()
-        elif self.key in self.obj:
-            del self.obj[self.key]
+            self.obj[str(self.key)] = self.currentText()
+        elif str(self.key) in self.obj:
+            del self.obj[str(self.key)]
         if self.cb:
             self.cb(self.currentText())
         else:

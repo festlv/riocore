@@ -16,15 +16,17 @@ import time
 from functools import partial
 
 if os.path.isfile("./riocore/__init__.py"):
-	sys.path.insert(0, "./")
+    sys.path.insert(0, "./")
 
 import graphviz
 import riocore
 from riocore import halpins
 
+from riocore import axisgraph
 from riocore import halgraph
+from riocore import vcp
 from riocore.plugins import Modifiers
-from riocore.widgets import MyQSvgWidget, MyStandardItem, edit_float, edit_int, edit_text, edit_bool, edit_combobox, STYLESHEET, STYLESHEET_CHECKBOX_GREEN_RED, STYLESHEET_BUTTON
+from riocore.widgets import MyQSvgWidget, MyQLabel, MyStandardItem, edit_float, edit_int, edit_text, edit_bool, edit_combobox, STYLESHEET, STYLESHEET_CHECKBOX_GREEN_RED, STYLESHEET_BUTTON
 
 
 from PyQt5 import QtSvg
@@ -265,9 +267,14 @@ class TabLinuxCNC:
     def update(self):
         config_name = self.parent.config.get("name")
         for filename, widget in self.linuxcnc.items():
-            file_content = open(f"{self.parent.output_path}/{config_name}/LinuxCNC/{filename}", "r").read()
             widget.clear()
-            widget.insertPlainText(file_content)
+            file_path = f"{self.parent.output_path}/{config_name}/LinuxCNC/{filename}"
+            if os.path.isfile(file_path):
+                file_content = open(file_path, "r").read()
+                widget.insertPlainText(file_content)
+
+                if filename == "rio-gui.xml" and self.parent.vcp is not None:
+                    self.parent.vcp.load(file_path)
 
 
 class TabGateware:
@@ -371,17 +378,17 @@ class TabSignals:
                     options_net = []
                     for halpin, halpin_info in halpins.LINUXCNC_SIGNALS[signal_direction].items():
                         if is_bool:
-                            if halpin_info.get("type") == bool:
+                            if halpin_info.get("type") is bool:
                                 options_net.append(halpin)
-                        elif halpin_info.get("type") != bool:
+                        elif halpin_info.get("type") is not bool:
                             options_net.append(halpin)
 
                     options_func = []
                     for halpin, halpin_info in halpins.RIO_FUNCTIONS[signal_direction].items():
                         if is_bool:
-                            if halpin_info.get("type") == bool:
+                            if halpin_info.get("type") is bool:
                                 options_func.append(halpin)
-                        elif halpin_info.get("type") != bool:
+                        elif halpin_info.get("type") is not bool:
                             options_func.append(halpin)
 
                     if key == "function":
@@ -418,17 +425,17 @@ class TabSignals:
                 options_net = []
                 for halpin, halpin_info in halpins.LINUXCNC_SIGNALS[signal_direction].items():
                     if is_bool:
-                        if halpin_info.get("type") == bool:
+                        if halpin_info.get("type") is bool:
                             options_net.append(halpin)
-                    elif halpin_info.get("type") != bool:
+                    elif halpin_info.get("type") is not bool:
                         options_net.append(halpin)
 
                 options_func = []
                 for halpin, halpin_info in halpins.RIO_FUNCTIONS[signal_direction].items():
                     if is_bool:
-                        if halpin_info.get("type") == bool:
+                        if halpin_info.get("type") is bool:
                             options_func.append(halpin)
-                    elif halpin_info.get("type") != bool:
+                    elif halpin_info.get("type") is not bool:
                         options_func.append(halpin)
 
                 if key == "function":
@@ -646,16 +653,42 @@ class TabHal:
     def update(self):
         config_name = self.parent.config.get("name")
         svg_data = halgraph.HalGraph(f"{self.parent.output_path}/{config_name}/LinuxCNC/rio.ini").svg()
-        self.hal_img.load(svg_data)
+        if svg_data:
+            self.hal_img.load(svg_data)
+
+
+class TabAxis:
+    def __init__(self, parent=None):
+        self.parent = parent
+        self.hal_img = MyQSvgWidget()
+
+    def widget(self):
+        return self.hal_img
+
+    def timer(self):
+        pass
+
+    def update(self):
+        config_name = self.parent.config.get("name")
+        config_folder = f"{self.parent.output_path}/{config_name}/LinuxCNC"
+        svg_data = axisgraph.AxisGraph(f"{config_folder}/rio.hal", f"{config_folder}/rio.ini").svg()
+        if svg_data:
+            self.hal_img.load(svg_data)
 
 
 class TabOverview:
     def __init__(self, parent=None):
         self.parent = parent
-        self.overview_img = MyQSvgWidget()
+        self.overview_img = MyQLabel(self)
+        self.scroll_widget = QScrollArea()
+        self.scroll_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_widget.setWidgetResizable(True)
+        self.scroll_widget.setWidget(self.overview_img)
+        self.map = None
 
     def widget(self):
-        return self.overview_img
+        return self.scroll_widget
 
     def timer(self):
         pass
@@ -664,7 +697,7 @@ class TabOverview:
         num = 0
         fpga_name = f"{self.parent.config.get('boardcfg')}"
 
-        gAll = graphviz.Digraph("G", format="svg")
+        gAll = graphviz.Digraph("G", format="png")
         gAll.attr(rankdir="LR")
         gAll.attr(bgcolor="black")
 
@@ -805,6 +838,7 @@ class TabOverview:
                 fontsize="11pt",
                 style="rounded, filled",
                 fillcolor="lightblue",
+                URL=f"instance:{name.replace(' ', '#')}",
             )
 
             if plugin_instance.plugin_setup.get("is_joint", False):
@@ -819,7 +853,7 @@ class TabOverview:
 
             for plugin_instance in self.parent.modules[slot_name]["instances"]:
                 pports = []
-                name = plugin_instance.plugin_setup.get("name")
+                name = plugin_instance.plugin_setup.get("name", plugin_instance.title)
                 title = plugin_instance.NAME
                 if name:
                     title = f"{name} ({plugin_instance.NAME})"
@@ -908,6 +942,7 @@ class TabOverview:
                     fontsize="11pt",
                     style="rounded, filled",
                     fillcolor="lightblue",
+                    URL=f"instance:{name.replace(' ', '#')}",
                 )
 
                 if plugin_instance.plugin_setup.get("is_joint", False):
@@ -926,8 +961,33 @@ class TabOverview:
             fillcolor="lightgreen",
         )
 
-        self.overview_img.load(gAll.pipe())
-        # self.overview_img.setFixedSize(self.overview_img.renderer().defaultSize())
+        self.map = {}
+        for line in gAll.pipe(format="imap").decode().split("\n"):
+            if line.startswith("rect "):
+                parts = line.split()
+                instance = parts[1].split(":")[1].replace("#", " ")
+                begin = parts[2].split(",")
+                end = parts[3].split(",")
+                self.map[instance] = (int(begin[0]), int(begin[1]), int(end[0]), int(end[1]))
+
+        png_data = gAll.pipe()
+        self.overview_img.load(png_data)
+
+    def on_click(self, x, y):
+        for instance, pos in self.map.items():
+            if x >= pos[0] and x <= pos[2] and y >= pos[1] and y <= pos[3]:
+                for plugin_instance in self.parent.plugins.plugin_instances:
+                    name = plugin_instance.plugin_setup.get("name", plugin_instance.title)
+                    if name == instance:
+                        self.parent.edit_plugin(plugin_instance, None, is_new=False)
+                        return
+                for module_data in self.parent.config.get("modules", []):
+                    slot_name = module_data.get("slot")
+                    for plugin_instance in self.parent.modules[slot_name]["instances"]:
+                        name = plugin_instance.plugin_setup.get("name", plugin_instance.title)
+                        if name == instance:
+                            self.parent.edit_plugin(plugin_instance, None, is_new=False)
+                            return
 
 
 class TabJson:
@@ -969,13 +1029,19 @@ class TabBoard:
         ipin_layout.addWidget(self.pininfo)
         ipin_layout.addStretch()
 
+        self.scroll_widget = QScrollArea()
+        self.scroll_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scroll_widget.setWidgetResizable(True)
+        self.scroll_widget.setWidget(self.ipin_widget)
+
     def widget(self):
-        return self.ipin_widget
+        return self.scroll_widget
 
     def timer(self):
         if self.pininfo_timer == 1:
             self.pininfo_timer = 0
-            self.pininfo.setText("")
+            self.pininfo.setText("\n".join([""] * 10))
         elif self.pininfo_timer > 1:
             self.pininfo_timer -= 1
 
@@ -1113,13 +1179,17 @@ class TabBoard:
         infotext = [f"Slot: {slot_name}"]
         infotext.append("Pins:")
         networks = []
-
+        infoline = 0
+        ln = 0
         for key, label in self.pinlabels.items():
             splitted = key.split(":")
             if splitted[0] == slot_name:
                 color = "darkCyan"
                 label.mark(color)
                 direction = label.pin.get("direction") or "all"
+                comment = label.pin.get("comment") or ""
+                if comment:
+                    comment = f" - {comment}"
 
                 plugin_instance, pin_name = self.parent.get_plugin_by_pin(label.pin.get("pin", {}))
                 pinfo = ""
@@ -1136,8 +1206,10 @@ class TabBoard:
 
                 if key == pkey:
                     pinfo += " <-"
+                    infoline = ln
 
-                infotext.append(f" {splitted[1]}: {label.pin.get('pin', {})} ({direction}) {pinfo}")
+                infotext.append(f" {splitted[1]}: {label.pin.get('pin', {})} ({direction}{comment}) {pinfo}")
+                ln += 1
             else:
                 label.unmark()
 
@@ -1146,7 +1218,16 @@ class TabBoard:
                 infotext.append("Networks:")
                 for net in networks:
                     infotext.append(f" {net}")
-            self.pininfo.setText("\n".join(infotext))
+
+            start = 0
+            end = 9
+            if infoline > 3:
+                start = infoline - 3
+                end = infoline + 6
+            displayed = infotext[start:end]
+            fill = 10 - len(displayed)
+            displayed += [""] * fill
+            self.pininfo.setText("\n".join(displayed))
             self.pininfo_timer = 0
         else:
             self.pininfo_timer = 3
@@ -1197,6 +1278,12 @@ class WinForm(QWidget):
                 print(f"can not load: {args.config}")
                 exit(1)
 
+        try:
+            self.vcp = vcp.MyVCP()
+        except Exception as error:
+            print(f"ERROR(VCP): {error}")
+            self.vcp = None
+
         self.tabwidget = QTabWidget()
         splitter.addWidget(self.tabwidget)
 
@@ -1210,6 +1297,7 @@ class WinForm(QWidget):
             "Board": TabBoard(self),
             "Overview": TabOverview(self),
             "Hal": TabHal(self),
+            "Axis": TabAxis(self),
             "Pins": TabPins(self),
             "Signals": TabSignals(self),
             "Json": TabJson(self),
@@ -1289,9 +1377,10 @@ class WinForm(QWidget):
         button.clicked.connect(self.testgui)
         button_layout.addWidget(button)
 
-        button = QPushButton("PyVCP-Preview")
-        button.clicked.connect(self.open_pyvcp)
-        button_layout.addWidget(button)
+        if self.vcp is not None:
+            button = QPushButton("VCP-Preview")
+            button.clicked.connect(self.open_pyvcp)
+            button_layout.addWidget(button)
 
         self.addons = {}
         for addon_path in sorted(glob.glob(f"{riocore_path}/generator/addons/*/config.py")):
@@ -1624,6 +1713,8 @@ class WinForm(QWidget):
         self.config_load()
 
     def closeEvent(self, event):
+        if self.vcp is not None:
+            self.vcp.close()
         if self.config_original != self.clean_config(self.config):
             self.save_config_as()
 
@@ -1703,6 +1794,7 @@ class WinForm(QWidget):
             plugin_infos[plugin["name"]] = {
                 "description": plugins.plugin_instances[0].DESCRIPTION,
                 "info": plugins.plugin_instances[0].INFO,
+                "keywords": plugins.plugin_instances[0].KEYWORDS,
                 "pins": plugins.plugin_instances[0].PINDEFAULTS,
                 "signals": plugins.plugin_instances[0].SIGNALS,
             }
@@ -1716,7 +1808,7 @@ class WinForm(QWidget):
                     if compatible:
                         possible_plugins = compatible
                     else:
-                        default = slot.get("default")
+                        # default = slot.get("default")
                         # if default:
                         #    possible_plugins.append(default)
                         slot_has = {
@@ -1771,7 +1863,10 @@ class WinForm(QWidget):
         dialog.setLayout(dialog.layout)
 
         def show_plugin_info(idx):
-            plugin_name = possible_plugins[idx]
+            if not plugin_table.item(idx, 0):
+                return
+
+            plugin_name = plugin_table.item(idx, 0).text()
             plugin_path = f"{riocore_path}/plugins/{plugin_name}"
             image_path = f"{plugin_path}/image.png"
             if os.path.isfile(image_path):
@@ -1796,6 +1891,18 @@ class WinForm(QWidget):
             description_label.setText(description)
             dialog.selected = plugin_name
 
+        def search(search_str):
+            plugin_table.setRowCount(0)
+            row = 0
+            for plugin_name in possible_plugins:
+                stext = f'{plugin_name} {plugin_infos[plugin_name]["info"]} {plugin_infos[plugin_name]["description"]} {plugin_infos[plugin_name]["keywords"]}'
+                if search_str.lower() not in stext.lower():
+                    continue
+                pitem = QTableWidgetItem(plugin_name)
+                plugin_table.setRowCount(row + 1)
+                plugin_table.setItem(row, 0, pitem)
+                row += 1
+
         plugin_table = QTableWidget()
         plugin_table.setColumnCount(1)
         plugin_table.setHorizontalHeaderItem(0, QTableWidgetItem("Plugins"))
@@ -1806,6 +1913,8 @@ class WinForm(QWidget):
         plugin_table.setFixedWidth(200)
         plugin_table.cellClicked.connect(show_plugin_info)
         plugin_table.currentCellChanged.connect(show_plugin_info)
+        header = plugin_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
 
         mid_layout = QVBoxLayout()
         mid_widget = QWidget()
@@ -1830,8 +1939,17 @@ class WinForm(QWidget):
         right_layout.addWidget(image_label)
         right_layout.addStretch()
 
+        left_layout = QVBoxLayout()
+        left_widget = QWidget()
+        left_widget.setLayout(left_layout)
+        plugin_search = QLineEdit("")
+        plugin_search.textChanged.connect(search)
+        left_layout.addWidget(plugin_search)
+        left_layout.addWidget(plugin_table)
+        left_layout.addStretch()
+
         infos = QHBoxLayout()
-        infos.addWidget(plugin_table, stretch=1)
+        infos.addWidget(left_widget, stretch=1)
         infos.addWidget(mid_widget, stretch=3)
         infos.addWidget(right_widget, stretch=1)
 
@@ -1882,6 +2000,10 @@ class WinForm(QWidget):
                             continue
                         num_mandatory += 1
 
+                    # workaround for too many pins on slot
+                    if len(slot.get("pins", {}).keys()) > 10:
+                        num_mandatory = 1
+
                     if num_mandatory == 1:
                         for pin_name, pin_defaults in plugin_instance.PINDEFAULTS.items():
                             optional = pin_defaults.get("optional")
@@ -1892,6 +2014,7 @@ class WinForm(QWidget):
                             if direction in slotpins and pin_id in slotpins[direction]:
                                 slotpins[direction].remove(pin_id)
                             self.config["plugins"][plugin_id]["pins"][pin_name] = pinconfig
+                            break
                     else:
                         # first mandatory pins
                         for pin_name, pin_defaults in plugin_instance.PINDEFAULTS.items():
@@ -2162,23 +2285,8 @@ class WinForm(QWidget):
             self.info_widget.setText(f"ERROR: {error}")
 
     def open_pyvcp(self):
-        try:
-            if os.system("pidof linuxcncsvr") == 0:
-                print("ERROR: linuxcnc is running")
-                self.info_widget.setText("ERROR: linuxcnc is running")
-            else:
-                self.generate_cb(preview=True)
-                if "rio-gui.xml" in self.tabs["LinuxCNC"].linuxcnc:
-                    xml_data = self.tabs["LinuxCNC"].linuxcnc["rio-gui.xml"].toPlainText()
-                    if xml_data:
-                        tmp_file = ".tmp_rio-gui.xml"
-                        os.system('ps fax | grep "pyvcp .tmp_rio-gui.xml" | grep -v grep | cut -d" " -f1 | xargs -r -l kill -4')
-                        os.system("halcmd stop")
-                        open(tmp_file, "w").write(xml_data)
-                        os.system(f"(pyvcp '{tmp_file}' ; rm -f '{tmp_file}') &")
-        except Exception as error:
-            print(f"ERROR: {error}")
-            self.info_widget.setText(f"ERROR: {error}")
+        if self.vcp is not None:
+            self.vcp.toggle()
 
     def struct_clean(self, data):
         # removing empty lists and dicts
@@ -2215,21 +2323,20 @@ class WinForm(QWidget):
         self.struct_clean(config)
         return config
 
-    def edit_item(self, obj, key, var_setup=None, cb=None):
+    def edit_item(self, obj, key, var_setup=None, cb=None, help_text=None):
         if var_setup is None:
             var_setup = {}
-        # if key not in obj and "default" in var_setup:
-        #    obj[key] = var_setup["default"]
-
+        if help_text is None:
+            help_text = var_setup.get("help_text", var_setup.get("description"))
         if var_setup["type"] == "select":
-            return edit_combobox(self, obj, key, var_setup.get("options", []), cb=cb, default=var_setup.get("default"))
-        elif var_setup["type"] == int:
-            return edit_int(self, obj, key, vmin=var_setup.get("min"), vmax=var_setup.get("max"), cb=cb, default=var_setup.get("default"))
-        elif var_setup["type"] == float:
-            return edit_float(self, obj, key, vmin=var_setup.get("min"), vmax=var_setup.get("max"), cb=cb, default=var_setup.get("default"), decimals=var_setup.get("decimals"))
-        elif var_setup["type"] == bool:
-            return edit_bool(self, obj, key, cb=cb, default=var_setup.get("default"))
-        return edit_text(self, obj, key, cb=cb, default=var_setup.get("default"))
+            return edit_combobox(self, obj, key, var_setup.get("options", []), cb=cb, help_text=help_text, default=var_setup.get("default"))
+        elif var_setup["type"] is int:
+            return edit_int(self, obj, key, vmin=var_setup.get("min"), vmax=var_setup.get("max"), cb=cb, help_text=help_text, default=var_setup.get("default"))
+        elif var_setup["type"] is float:
+            return edit_float(self, obj, key, vmin=var_setup.get("min"), vmax=var_setup.get("max"), cb=cb, help_text=help_text, default=var_setup.get("default"), decimals=var_setup.get("decimals"))
+        elif var_setup["type"] is bool:
+            return edit_bool(self, obj, key, cb=cb, help_text=help_text, default=var_setup.get("default"))
+        return edit_text(self, obj, key, cb=cb, help_text=help_text, default=var_setup.get("default"))
 
     def del_module(self, slot_name):
         for mn, module_data in enumerate(self.config.get("modules", [])):
@@ -2246,7 +2353,6 @@ class WinForm(QWidget):
                 # split module into plugins
                 if module_data.get("setup") is None:
                     module_name = module_data.get("module")
-                    module_setup = module_data.get("setup", {})
                     module_path = self.get_path(f"modules/{module_name}/module.json")
                     moduleJsonStr = open(module_path, "r").read()
                     module_defaults = json.loads(moduleJsonStr)
@@ -2793,7 +2899,8 @@ class WinForm(QWidget):
 
     def edit_plugin_pins(self, plugin_instance, plugin_config):
         def update(arg):
-            print("#update", arg, plugin_config)
+            pass
+            # print("#update", arg, plugin_config)
 
         myFont = QFont()
         myFont.setBold(True)
@@ -2839,6 +2946,7 @@ class WinForm(QWidget):
             pin_cols = QHBoxLayout()
             pin_rows.addLayout(pin_cols)
             pin_cols.addWidget(QLabel("Pin:"), stretch=2)
+
             pin_cols.addWidget(self.edit_item(pin_config, "pin", {"type": "select", "options": self.pinlist, "default": ""}, cb=update), stretch=6)
             if direction == "input":
                 pin_cols.addWidget(QLabel("Pull:"), stretch=1)
@@ -2853,10 +2961,13 @@ class WinForm(QWidget):
 
             pin_cols = QHBoxLayout()
             pin_rows.addLayout(pin_cols)
-            pin_cols.addWidget(QLabel("Modifiers:"))
+            mod_label = QLabel("Modifiers:")
+            mod_label.setToolTip("list of pin-modifiers")
+            pin_cols.addWidget(mod_label)
             mod_cols = QHBoxLayout()
             pin_cols.addLayout(mod_cols)
             add_button = QPushButton("+")
+            add_button.setToolTip("add an pin-modifiers")
             add_button.clicked.connect(partial(self.modifier_list_add, mod_cols, modifier_list))
             add_button.setFixedWidth(20)
             pin_cols.addWidget(add_button)
@@ -2866,19 +2977,26 @@ class WinForm(QWidget):
             # IO-Standart
             pin_cols = QHBoxLayout()
             pin_rows.addLayout(pin_cols)
-
+            tooltip = "FPGA level IO config / optional / better do not use :)"
             io_label = QLabel("IO-Standart:")
-            io_label.setToolTip("FPGA level IO config / optional / better do not use :)")
+            io_label.setToolTip(tooltip)
             pin_cols.addWidget(io_label, stretch=1)
 
             pin_cols.addWidget(
-                self.edit_item(pin_config, "iostandard", {"type": "select", "options": ["LVTTL", "LVCMOS33", "LVCMOS25", "LVCMOS18", "LVCMOS15", "LVCMOS12"], "default": "LVTTL"}, cb=update), stretch=3
+                self.edit_item(
+                    pin_config, "iostandard", {"type": "select", "options": ["LVTTL", "LVCMOS33", "LVCMOS25", "LVCMOS18", "LVCMOS15", "LVCMOS12"], "default": "LVTTL", "help_text": tooltip}, cb=update
+                ),
+                stretch=3,
             )
             if direction == "output":
-                pin_cols.addWidget(QLabel("Slew:"), stretch=1)
-                pin_cols.addWidget(self.edit_item(pin_config, "slew", {"type": "select", "options": ["SLOW", "FAST"], "default": "SLOW"}, cb=update), stretch=3)
-                pin_cols.addWidget(QLabel("Drive:"), stretch=1)
-                pin_cols.addWidget(self.edit_item(pin_config, "drive", {"type": "select", "options": ["2", "4", "8", "12", "16", "24"], "default": "4"}, cb=update), stretch=3)
+                label = QLabel("Slew:")
+                label.setToolTip(tooltip)
+                pin_cols.addWidget(label, stretch=1)
+                pin_cols.addWidget(self.edit_item(pin_config, "slew", {"type": "select", "options": ["SLOW", "FAST"], "default": "SLOW", "help_text": tooltip}, cb=update), stretch=3)
+                label = QLabel("Drive:")
+                label.setToolTip(tooltip)
+                pin_cols.addWidget(label, stretch=1)
+                pin_cols.addWidget(self.edit_item(pin_config, "drive", {"type": "select", "options": ["2", "4", "8", "12", "16", "24"], "default": "4", "help_text": tooltip}, cb=update), stretch=3)
             else:
                 pin_cols.addWidget(QLabel(""), stretch=8)
 
@@ -3028,9 +3146,9 @@ class WinForm(QWidget):
                         if signal_name == "position":
                             options.append(f"{plugin_instance.title}:{signal_name}")
                 option_setup = {"type": "select", "options": options, "default": ""}
-                option_widget = self.edit_item(joints_setup, option, option_setup, cb=update)
+                option_widget = self.edit_item(joints_setup, option, option_setup, cb=update, help_text=tootltip)
             else:
-                option_widget = self.edit_item(joints_setup, option, option_setup, cb=update)
+                option_widget = self.edit_item(joints_setup, option, option_setup, cb=update, help_text=tootltip)
 
             option_row.addWidget(option_widget, stretch=3)
             general_layout.addLayout(option_row)
@@ -3052,7 +3170,9 @@ class WinForm(QWidget):
             option_label = QLabel(option.replace("_", "-").title())
             option_label.setToolTip(tootltip)
             option_row.addWidget(option_label, stretch=1)
-            option_widget = self.edit_item(joints_setup, option, option_setup, cb=update)
+            if option == "home_sequence":
+                option_setup = {"default": "auto", "type": "select", "options": ["auto"] + [str(n) for n in range(-9, 9)]}
+            option_widget = self.edit_item(joints_setup, option, option_setup, cb=update, help_text=tootltip)
             option_row.addWidget(option_widget, stretch=3)
             homing_layout.addLayout(option_row)
 
@@ -3077,7 +3197,7 @@ class WinForm(QWidget):
             option_label = QLabel(option.replace("_", "-").title())
             option_label.setToolTip(tootltip)
             option_row.addWidget(option_label, stretch=1)
-            option_widget = self.edit_item(joints_setup, option, option_setup, cb=update)
+            option_widget = self.edit_item(joints_setup, option, option_setup, cb=update, help_text=tootltip)
             option_row.addWidget(option_widget, stretch=3)
             pid_layout.addLayout(option_row)
         pid_layout.addStretch()
@@ -3090,7 +3210,8 @@ class WinForm(QWidget):
 
     def edit_plugin_signals(self, plugin_instance, plugin_config):
         def update(arg):
-            print("#update", arg, plugin_config)
+            pass
+            # print("#update", arg, plugin_config)
 
         def toggleGroup(ctrl):
             state = ctrl.isChecked()
@@ -3125,17 +3246,17 @@ class WinForm(QWidget):
             options_net = []
             for halpin, halpin_info in halpins.LINUXCNC_SIGNALS[signal_direction].items():
                 if is_bool:
-                    if halpin_info.get("type") == bool:
+                    if halpin_info.get("type") is bool:
                         options_net.append(halpin)
-                elif halpin_info.get("type") != bool:
+                elif halpin_info.get("type") is not bool:
                     options_net.append(halpin)
 
             options_func = []
             for halpin, halpin_info in halpins.RIO_FUNCTIONS[signal_direction].items():
                 if is_bool:
-                    if halpin_info.get("type") == bool:
+                    if halpin_info.get("type") is bool:
                         options_func.append(halpin)
-                elif halpin_info.get("type") != bool:
+                elif halpin_info.get("type") is not bool:
                     options_func.append(halpin)
 
             frame = QGroupBox(self)
@@ -3323,17 +3444,16 @@ class WinForm(QWidget):
         dialog_buttonBox.accepted.connect(dialog.accept)
         dialog_buttonBox.rejected.connect(dialog.reject)
 
-        if self.config["linuxcnc"].get("gui", "axis") == "axis":
-            pyvcp_button = QPushButton(self.tr("PyVCP-Preview"))
-            pyvcp_button.clicked.connect(self.open_pyvcp)
-            dialog_buttonBox.addButton(pyvcp_button, QDialogButtonBox.ActionRole)
-
         if not nopins:
             remove_button = QPushButton(self.tr("Remove"))
             remove_button.clicked.connect(partial(self.del_plugin, plugin_instance, dialog=dialog))
             dialog_buttonBox.addButton(remove_button, QDialogButtonBox.ActionRole)
 
         tab_widget = QTabWidget()
+
+        if is_new and plugin_instance.TYPE == "joint":
+            if "position" in plugin_instance.SIGNALS:
+                plugin_config["is_joint"] = True
 
         options_tab = self.edit_plugin_options(plugin_instance, plugin_config)
         tab_widget.addTab(options_tab, "Plugin")
@@ -3514,10 +3634,17 @@ class WinForm(QWidget):
         dialog.layout.addLayout(infos)
         dialog.layout.addWidget(dialog_buttonBox)
 
-        show_module_info(0)
-
-        if dialog.exec():
-            return (combo_slot.currentText(), dialog.selected)
+        if not dialog.module_names:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("no matching modules found")
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+        else:
+            show_module_info(0)
+            if dialog.exec():
+                return (combo_slot.currentText(), dialog.selected)
 
     def flash_cb(self):
         self.tabwidget.setCurrentWidget(self.tabs["Gateware"].widget())
@@ -3562,6 +3689,7 @@ class WinForm(QWidget):
             self.tabs["Gateware"].update()
             self.tabs["LinuxCNC"].update()
             self.tabs["Hal"].update()
+            self.tabs["Axis"].update()
 
         except Exception as error:
             print(f"ERROR loading output: {error}")

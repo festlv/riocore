@@ -4,6 +4,8 @@
 
 <div align="center">
 
+  ![rio-logo](./riocore/files/rio-logo-128x128.png)
+
   [![License](https://img.shields.io/badge/license-GPL2-blue.svg)](/LICENSE)
 
 </div>
@@ -66,13 +68,18 @@ here is a small overview of the boards: [TOOLCHAINS](TOOLCHAINS.md)
 
 ## Getting Started <a name = "getting_started"></a>
 
-installing via git:
+There are 2 ways of getting started. 
+
+ 1. Install riocore on the linux  [host](#host).
+ 2. Use [docker](DOCKER.md).
+
+### Install ricore on the host <a name = "host"></a>
+
+- installing via git:
 ```
 git clone https://github.com/multigcs/riocore.git
 cd riocore
 ```
-
-Using a TangNano9k or other board supported by the open-cad-suite? Check out the docker setup for an easy to use all in one way to run the riocore ui and generator, including flashing: [DOCKER](DOCKER.md)
 
 make sure that the toolchain matching your fpga is in the path:
 ```
@@ -87,6 +94,11 @@ than copy a config file that is near to your setup:
 ```
 cp riocore/configs/Tangoboard/config-spi.json my_config.json
 ```
+
+## [DOCKER](DOCKER.md)
+
+Using a TangNano9k or other board supported by the open-cad-suite? Check out the docker setup for an easy to use all in one way to run the riocore ui and generator, including flashing: [DOCKER](DOCKER.md)
+
 
 ## Usage <a name="usage"></a>
 
@@ -179,3 +191,24 @@ graph LR;
     /LinuxCNC-->*.hal;
 ```
 
+
+## Directory Structure
+
+```
+riocore
+├── bin ················ user tools / gui's
+├── doc ················ documentation
+├── dockerfiles ········ files to run the docker container
+├┬─ ricore ············· main directory 
+|├── boards ············ board configurations
+|├── chipdata ·········· pin-information about the different FPGAs
+|├── configs ··········· some demo configurations
+|├── files ············· helper scripts and files
+|├┬── generator ········ the generators for the GateWare and LinuxCNC configuration
+||├── addons ··········· generator addons for LinuxCNC (like joystick/mpg/...)
+||├── pins ············· the different pin generators, used by the toolchains
+||├── toolchains ······· location of the different toolchain generators
+|├── modules ··········· break out board and external modules configuration
+|├── plugins ··········· location of the plugins
+├── tests ·············· unit tests
+```
