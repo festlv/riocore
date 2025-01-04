@@ -71,171 +71,252 @@
             },
             "gw": "10.42.0.1",
             "ip": "10.42.0.2"
+        },
+        {
+            "name": "joint-0",
+            "type": "stepdir",
+            "is_joint": true,
+            "joint": {
+                "scale": 2000.0,
+                "max_velocity": 250.0,
+                "max_acceleration": 1250.0,
+                "stepgen_maxaccel": 1250.0,
+                "feedback": "encoder-0:position",
+                "pid_maxoutput": 200.0,
+                "pid_p": 15.0,
+                "pid_ff1": 0.918,
+                "pid_ff2": 0.003
+            },
+            "axis": "X",
+            "pins": {
+                "step": {
+                    "pin": "SA:S9"
+                },
+                "dir": {
+                    "pin": "SA:S10"
+                },
+                "en": {
+                    "pin": "SA:S11"
+                }
+            }
+        },
+        {
+            "name": "joint-1",
+            "type": "stepdir",
+            "is_joint": true,
+            "joint": {
+                "scale": -1000.0,
+                "max_velocity": 250.0,
+                "max_acceleration": 1250.0,
+                "stepgen_maxaccel": 1250.0
+            },
+            "axis": "Y",
+            "pins": {
+                "step": {
+                    "pin": "SA:S6"
+                },
+                "dir": {
+                    "pin": "SA:S7"
+                },
+                "en": {
+                    "pin": "SA:S8"
+                }
+            }
+        },
+        {
+            "name": "joint-2",
+            "type": "stepdir",
+            "is_joint": true,
+            "joint": {
+                "scale": -2000.0,
+                "max_velocity": 250.0,
+                "max_acceleration": 2500.0,
+                "stepgen_maxaccel": 2500.0
+            },
+            "axis": "Z",
+            "pins": {
+                "step": {
+                    "pin": "SA:S3"
+                },
+                "dir": {
+                    "pin": "SA:S4"
+                },
+                "en": {
+                    "pin": "SA:S5"
+                }
+            }
+        },
+        {
+            "name": "joint-3",
+            "type": "stepdir",
+            "is_joint": true,
+            "pins": {
+                "step": {
+                    "pin": "SA:S0"
+                },
+                "dir": {
+                    "pin": "SA:S1"
+                },
+                "en": {
+                    "pin": "SA:S2"
+                }
+            }
+        },
+        {
+            "name": "encoder-0",
+            "type": "quadencoderz",
+            "quad_type": 0,
+            "signals": {
+                "indexenable": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "indexout": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "position": {
+                    "scale": 2000.0,
+                    "net": "",
+                    "function": "",
+                    "setp": "",
+                    "display": {
+                        "title": "X encoder",
+                        "type": "number"
+                    }
+                },
+                "rps": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "rpm": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                }
+            },
+            "pins": {
+                "a": {
+                    "pin": "SB:S11"
+                },
+                "b": {
+                    "pin": "SB:S10"
+                },
+                "z": {
+                    "pin": "SB:S9"
+                }
+            }
+        },
+        {
+            "name": "encoder-1",
+            "type": "quadencoderz",
+            "quad_type": 0,
+            "signals": {
+                "indexenable": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "indexout": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "position": {
+                    "scale": -1000.0,
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "rps": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "rpm": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                }
+            },
+            "pins": {
+                "a": {
+                    "pin": "SB:S8"
+                },
+                "b": {
+                    "pin": "SB:S7"
+                },
+                "z": {
+                    "pin": "SB:S6"
+                }
+            }
+        },
+        {
+            "name": "encoder-2",
+            "type": "quadencoderz",
+            "quad_type": 0,
+            "signals": {
+                "indexenable": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "indexout": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "position": {
+                    "scale": -500.0,
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "rps": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                },
+                "rpm": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                }
+            },
+            "pins": {
+                "a": {
+                    "pin": "SB:S5"
+                },
+                "b": {
+                    "pin": "SB:S4"
+                },
+                "z": {
+                    "pin": "SB:S3"
+                }
+            }
+        },
+        {
+            "name": "encoder-3",
+            "type": "quadencoderz",
+            "quad_type": 0,
+            "pins": {
+                "a": {
+                    "pin": "SB:S2"
+                },
+                "b": {
+                    "pin": "SB:S1"
+                },
+                "z": {
+                    "pin": "SB:S0"
+                }
+            }
         }
     ],
     "protocol": "UDP",
     "modules": [
-        {
-            "slot": "SA",
-            "module": "rioctrl-stepdir4-v1.0",
-            "setup": {
-                "joint-0": {
-                    "name": "joint-0",
-                    "type": "stepdir",
-                    "is_joint": true,
-                    "joint": {
-                        "scale": 2000.0,
-                        "max_velocity": 250.0,
-                        "max_acceleration": 1250.0,
-                        "stepgen_maxaccel": 1250.0
-                    },
-                    "axis": "X"
-                },
-                "joint-1": {
-                    "name": "joint-1",
-                    "type": "stepdir",
-                    "is_joint": true,
-                    "joint": {
-                        "scale": -1000.0,
-                        "max_velocity": 250.0,
-                        "max_acceleration": 1250.0,
-                        "stepgen_maxaccel": 1250.0
-                    },
-                    "axis": "Y"
-                },
-                "joint-2": {
-                    "name": "joint-2",
-                    "type": "stepdir",
-                    "is_joint": true,
-                    "joint": {
-                        "scale": -2000.0,
-                        "max_velocity": 250.0,
-                        "max_acceleration": 2500.0,
-                        "stepgen_maxaccel": 2500.0
-                    },
-                    "axis": "Z"
-                },
-                "joint-3": {
-                    "name": "joint-3",
-                    "type": "stepdir",
-                    "is_joint": true
-                }
-            }
-        },
-        {
-            "slot": "SB",
-            "module": "rioctrl-quadenc4-v1.0",
-            "setup": {
-                "encoder-0": {
-                    "name": "encoder-0",
-                    "type": "quadencoderz",
-                    "quad_type": 0,
-                    "signals": {
-                        "indexenable": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "indexout": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "position": {
-                            "scale": 2000.0,
-                            "net": "",
-                            "function": "",
-                            "setp": "",
-                            "display": {
-                                "title": "X encoder",
-                                "type": "number"
-                            }
-                        },
-                        "rps": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "rpm": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        }
-                    }
-                },
-                "encoder-1": {
-                    "name": "encoder-1",
-                    "type": "quadencoderz",
-                    "quad_type": 0,
-                    "signals": {
-                        "indexenable": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "indexout": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "position": {
-                            "scale": -1000.0,
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "rps": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "rpm": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        }
-                    }
-                },
-                "encoder-2": {
-                    "name": "encoder-2",
-                    "type": "quadencoderz",
-                    "quad_type": 0,
-                    "signals": {
-                        "indexenable": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "indexout": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "position": {
-                            "scale": -500.0,
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "rps": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        },
-                        "rpm": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
-                        }
-                    }
-                },
-                "encoder-3": {
-                    "name": "encoder-3",
-                    "type": "quadencoderz",
-                    "quad_type": 0
-                }
-            }
-        },
         {
             "slot": "SC",
             "module": "rioctrl-shiftio-v1.0",
