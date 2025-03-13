@@ -108,7 +108,12 @@
                 "scale": -1000.0,
                 "max_velocity": 250.0,
                 "max_acceleration": 1250.0,
-                "stepgen_maxaccel": 1250.0
+                "stepgen_maxaccel": 1250.0,
+                "feedback": "encoder-1:position",
+                "pid_p": 20.0,
+                "pid_maxoutput": 200.0,
+                "pid_ff1": 0.918,
+                "pid_ff2": 0.00325
             },
             "axis": "Y",
             "pins": {
@@ -130,8 +135,12 @@
             "joint": {
                 "scale": -2000.0,
                 "max_velocity": 250.0,
-                "max_acceleration": 2500.0,
-                "stepgen_maxaccel": 2500.0
+                "max_acceleration": 1000.0,
+                "stepgen_maxaccel": 1000.0,
+                "feedback": "encoder-2:position",
+                "pid_p": 10.0,
+                "pid_ff1": 0.918,
+                "pid_maxoutput": 200.0
             },
             "axis": "Z",
             "pins": {
@@ -229,7 +238,10 @@
                     "scale": -1000.0,
                     "net": "",
                     "function": "",
-                    "setp": ""
+                    "setp": "",
+                    "display": {
+                        "title": "Y encoder"
+                    }
                 },
                 "rps": {
                     "net": "",
@@ -270,7 +282,7 @@
                     "setp": ""
                 },
                 "position": {
-                    "scale": -500.0,
+                    "scale": -2000.0,
                     "net": "",
                     "function": "",
                     "setp": ""
