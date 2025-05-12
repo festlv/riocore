@@ -85,7 +85,16 @@
                 "pid_maxoutput": 200.0,
                 "pid_p": 15.0,
                 "pid_ff1": 0.918,
-                "pid_ff2": 0.003
+                "pid_ff2": 0.003,
+                "home_sequence": "1",
+                "home_search_vel": 20.0,
+                "home_latch_vel": -5.0,
+                "home_final_vel": 20.0,
+                "home_use_index": "YES",
+                "min_limit": 0.0,
+                "max_limit": 785.0,
+                "home_offset": 748.0,
+                "home": 748.0
             },
             "axis": "X",
             "pins": {
@@ -113,7 +122,15 @@
                 "pid_p": 20.0,
                 "pid_maxoutput": 200.0,
                 "pid_ff1": 0.918,
-                "pid_ff2": 0.00325
+                "pid_ff2": 0.00325,
+                "home_sequence": "1",
+                "home_search_vel": -20.0,
+                "home_final_vel": 20.0,
+                "home_use_index": "YES",
+                "home_offset": 23.0,
+                "home": 23.0,
+                "min_limit": 0.0,
+                "max_limit": 473.0
             },
             "axis": "Y",
             "pins": {
@@ -140,7 +157,15 @@
                 "feedback": "encoder-2:position",
                 "pid_p": 10.0,
                 "pid_ff1": 0.918,
-                "pid_maxoutput": 200.0
+                "pid_maxoutput": 200.0,
+                "home_sequence": "0",
+                "home_search_vel": 20.0,
+                "home_latch_vel": -5.0,
+                "home_final_vel": 20.0,
+                "home_use_index": "YES",
+                "home_offset": 0.0,
+                "min_limit": -243.0,
+                "max_limit": 32.0
             },
             "axis": "Z",
             "pins": {
@@ -169,6 +194,11 @@
                 "en": {
                     "pin": "SA:S2"
                 }
+            },
+            "joint": {
+                "home_search_vel": 0.0,
+                "home_latch_vel": 0.0,
+                "home_final_vel": 0.0
             }
         },
         {
@@ -177,9 +207,11 @@
             "quad_type": 0,
             "signals": {
                 "indexenable": {
-                    "net": "",
                     "function": "",
-                    "setp": ""
+                    "setp": "",
+                    "display": {
+                        "title": "X indexenable"
+                    }
                 },
                 "indexout": {
                     "net": "",
@@ -325,416 +357,474 @@
                     "pin": "SB:S0"
                 }
             }
-        }
-    ],
-    "protocol": "UDP",
-    "modules": [
+        },
         {
-            "slot": "SC",
-            "module": "rioctrl-shiftio-v1.0",
-            "setup": {
-                "shiftout": {
-                    "type": "shiftreg",
-                    "name": "shiftout",
-                    "bits": 16
+            "type": "shiftreg",
+            "name": "shiftout",
+            "bits": 16,
+            "pins": {
+                "out": {
+                    "pin": "SC:S0"
                 },
-                "shiftin": {
-                    "type": "shiftreg",
-                    "name": "shiftin",
-                    "bits": 16
+                "in": {
+                    "pin": "SC:S6"
                 },
-                "input0": {
-                    "type": "bitin",
-                    "name": "input0",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[7]"
+                "sclk": {
+                    "pin": "SC:S1"
+                },
+                "load": {
+                    "pin": "SC:S2"
+                }
+            }
+        },
+        {
+            "type": "shiftreg",
+            "name": "shiftin",
+            "bits": 16,
+            "pins": {
+                "in": {
+                    "pin": "SC:S3"
+                },
+                "out": {
+                    "pin": "SC:S7"
+                },
+                "sclk": {
+                    "pin": "SC:S4"
+                },
+                "load": {
+                    "pin": "SC:S5"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "24v2_on",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
+                    ],
+                    "pin": "SHIFTIN_INPUT[7]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
+                        }
+                    ],
+                    "pin": "SHIFTIN_INPUT[6]"
+                }
+            },
+            "name": "ready_x"
+        },
+        {
+            "type": "bitin",
+            "name": "ready_y",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
+                        }
+                    ],
+                    "pin": "SHIFTIN_INPUT[5]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "ready_z",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
+                        }
+                    ],
+                    "pin": "SHIFTIN_INPUT[4]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "ready_spindle",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
+                        }
+                    ],
+                    "pin": "SHIFTIN_INPUT[3]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "x_home_p",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTIN_INPUT[2]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "display": {
+                        "title": "Home X",
+                        "type": "led",
+                        "section": "Homing"
                     },
-                    "signals": {
-                        "bit": {
-                            "net": "motion.probe-input",
-                            "function": "",
-                            "setp": ""
+                    "net": "joint.0.home-sw-in"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "input6",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
-                    }
-                },
-                "input1": {
-                    "type": "bitin",
-                    "name": "input1",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[6]"
+                    ],
+                    "pin": "SHIFTIN_INPUT[1]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "input7",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
-                    }
-                },
-                "input2": {
-                    "type": "bitin",
-                    "name": "input2",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[5]"
-                        }
-                    }
-                },
-                "input3": {
-                    "type": "bitin",
-                    "name": "input3",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[4]"
-                        }
-                    }
-                },
-                "input4": {
-                    "type": "bitin",
-                    "name": "input4",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[3]"
-                        }
-                    }
-                },
-                "input5": {
-                    "type": "bitin",
-                    "name": "input5",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[2]"
-                        }
-                    }
-                },
-                "input6": {
-                    "type": "bitin",
-                    "name": "input6",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[1]"
-                        }
-                    }
-                },
-                "input7": {
-                    "type": "bitin",
-                    "name": "input7",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[0]"
-                        }
-                    }
-                },
-                "input8": {
-                    "type": "bitin",
-                    "name": "input8",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[15]"
-                        }
-                    }
-                },
-                "input9": {
-                    "type": "bitin",
-                    "name": "input9",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[14]"
-                        }
-                    }
-                },
-                "input10": {
-                    "type": "bitin",
-                    "name": "input10",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[13]"
-                        }
-                    }
-                },
-                "input11": {
-                    "type": "bitin",
-                    "name": "input11",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[12]"
-                        }
-                    }
-                },
-                "input12": {
-                    "type": "bitin",
-                    "name": "input12",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[11]"
-                        }
-                    }
-                },
-                "input13": {
-                    "type": "bitin",
-                    "name": "input13",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[10]"
-                        }
-                    }
-                },
-                "input14": {
-                    "type": "bitin",
-                    "name": "input14",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[9]"
-                        }
-                    }
-                },
-                "input15": {
-                    "type": "bitin",
-                    "name": "input15",
-                    "pins": {
-                        "bit": {
-                            "modifier": [
-                                {
-                                    "type": "invert"
-                                }
-                            ],
-                            "pin": "SHIFTIN_INPUT[8]"
-                        }
-                    }
-                },
-                "output0": {
-                    "type": "bitout",
-                    "name": "output0",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[0]"
-                        }
+                    ],
+                    "pin": "SHIFTIN_INPUT[0]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "y_home_n",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTIN_INPUT[15]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "display": {
+                        "title": "Home Y",
+                        "type": "led",
+                        "section": "Homing"
                     },
-                    "signals": {
-                        "bit": {
-                            "net": "spindle.0.on",
-                            "function": "",
-                            "setp": ""
+                    "net": "joint.1.home-sw-in"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "input9",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
-                    }
-                },
-                "output1": {
-                    "type": "bitout",
-                    "name": "output1",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[1]"
-                        }
+                    ],
+                    "pin": "SHIFTIN_INPUT[14]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "z_home_p",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTIN_INPUT[13]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "display": {
+                        "title": "Home Z",
+                        "type": "led",
+                        "section": "Homing"
                     },
-                    "signals": {
-                        "bit": {
-                            "net": "",
-                            "function": "",
-                            "setp": ""
+                    "net": "joint.2.home-sw-in"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "input11",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
-                    }
-                },
-                "output2": {
-                    "type": "bitout",
-                    "name": "output2",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[2]"
+                    ],
+                    "pin": "SHIFTIN_INPUT[12]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "input12",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
-                    }
-                },
-                "output3": {
-                    "type": "bitout",
-                    "name": "output3",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[3]"
+                    ],
+                    "pin": "SHIFTIN_INPUT[11]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "input13",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
-                    }
-                },
-                "output4": {
-                    "type": "bitout",
-                    "name": "output4",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[4]"
+                    ],
+                    "pin": "SHIFTIN_INPUT[10]"
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "probe_tool",
+            "pins": {
+                "bit": {
+                    "modifier": [
+                        {
+                            "type": "invert"
                         }
+                    ],
+                    "pin": "SHIFTIN_INPUT[9]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "display": {
+                        "title": "Probe tool",
+                        "section": "Homing",
+                        "type": "led"
                     }
-                },
-                "output5": {
-                    "type": "bitout",
-                    "name": "output5",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[5]"
-                        }
+                }
+            }
+        },
+        {
+            "type": "bitin",
+            "name": "probe_part",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTIN_INPUT[8]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "display": {
+                        "section": "Homing",
+                        "title": "Probe part",
+                        "type": "led"
                     }
-                },
-                "output6": {
-                    "type": "bitout",
-                    "name": "output6",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[6]"
-                        }
-                    }
-                },
-                "output7": {
-                    "type": "bitout",
-                    "name": "output7",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[7]"
-                        }
-                    }
-                },
-                "output8": {
-                    "type": "bitout",
-                    "name": "output8",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[8]"
-                        }
-                    }
-                },
-                "output9": {
-                    "type": "bitout",
-                    "name": "output9",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[9]"
-                        }
-                    }
-                },
-                "output10": {
-                    "type": "bitout",
-                    "name": "output10",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[10]"
-                        }
-                    }
-                },
-                "output11": {
-                    "type": "bitout",
-                    "name": "output11",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[11]"
-                        }
-                    }
-                },
-                "output12": {
-                    "type": "bitout",
-                    "name": "output12",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[12]"
-                        }
-                    }
-                },
-                "output13": {
-                    "type": "bitout",
-                    "name": "output13",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[13]"
-                        }
-                    }
-                },
-                "output14": {
-                    "type": "bitout",
-                    "name": "output14",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[14]"
-                        }
-                    }
-                },
-                "output15": {
-                    "type": "bitout",
-                    "name": "output15",
-                    "pins": {
-                        "bit": {
-                            "pin": "SHIFTOUT_OUTPUT[15]"
-                        }
-                    }
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output0",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[0]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output1",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[1]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "",
+                    "function": "",
+                    "setp": ""
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output2",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[2]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output3",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[3]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output4",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[4]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output5",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[5]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output6",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[6]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output7",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[7]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "indication_en",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[8]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "halui.machine.is-on"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "spindle_en",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[9]"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "spindle.0.on"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output10",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[10]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output11",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[11]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output12",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[12]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output13",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[13]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output14",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[14]"
+                }
+            }
+        },
+        {
+            "type": "bitout",
+            "name": "output15",
+            "pins": {
+                "bit": {
+                    "pin": "SHIFTOUT_OUTPUT[15]"
                 }
             }
         }
     ],
+    "protocol": "UDP",
     "linuxcnc": {
         "machinetype": "mill",
         "ini": {
@@ -742,7 +832,7 @@
                 "MAX_LINEAR_VELOCITY": 166.667,
                 "EDITOR": "nvim-qt",
                 "PROGRAM_PREFIX": "~/",
-                "DEFAULT_LINEAR_VELOCITY": 50.0
+                "DEFAULT_LINEAR_VELOCITY": 16.0
             },
             "TRAJ": {
                 "MAX_LINEAR_VELOCITY": 250.0
@@ -750,6 +840,7 @@
             "EMCMOT": {
                 "SERVO_PERIOD": 500000
             }
-        }
+        },
+        "gui": "probe_basic"
     }
 }
