@@ -1,0 +1,53 @@
+{
+    "comment": "rioctrl-spindle-v1.0",
+    "plugins": [
+        {
+            "name": "encoder-spindle-0",
+            "type": "quadencoderz",
+            "pins": {
+                "a": {
+                    "pin": "S11"
+                },
+                "b": {
+                    "pin": "S10"
+                },
+                "z": {
+                    "pin": "S9"
+                }
+            }
+        },
+        {
+            "name": "analogout-spindle-0",
+            "type": "pwmout",
+            "pins": {
+                "pwm": {
+                    "pin": "S0"
+                }
+            }
+        },
+        {
+            "name": "analogout-spindle-1",
+            "type": "pwmout",
+            "pins": {
+                "pwm": {
+                    "pin": "S1"
+                }
+            }
+        },
+        {
+            "name": "modbus-0",
+            "type": "modbus",
+            "pins": {
+                "tx": {
+                    "pin": "S4"
+                },
+                "rx": {
+                    "pin": "S5"
+                },
+                "tx_enable": {
+                    "pin": "S6"
+                }
+            }
+        }
+    ]
+}

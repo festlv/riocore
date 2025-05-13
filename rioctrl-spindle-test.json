@@ -1,0 +1,181 @@
+{
+    "name": "rioctrl",
+    "boardcfg": "rioctrl",
+    "flashcmd": "openFPGALoader -c dirtyJtag --write-flash --unprotect-flash rio.bit",
+    "plugins": [
+        {
+            "type": "blink",
+            "pins": {
+                "led": {
+                    "pin": "LED:ERR",
+                    "modifier": [
+                        {
+                            "type": "onerror",
+                            "invert": true
+                        }
+                    ]
+                }
+            },
+            "frequency": 1.0
+        },
+        {
+            "type": "blink",
+            "pins": {
+                "led": {
+                    "pin": "LED:OK",
+                    "modifier": [
+                        {
+                            "type": "onerror",
+                            "invert": false
+                        }
+                    ]
+                }
+            },
+            "frequency": 2.0
+        },
+        {
+            "type": "bitout",
+            "name": "SlotEN",
+            "pins": {
+                "bit": {
+                    "pin": "SlotControl:EN"
+                }
+            },
+            "signals": {
+                "bit": {
+                    "net": "halui.machine.is-on"
+                }
+            }
+        },
+        {
+            "type": "w5500",
+            "pins": {
+                "mosi": {
+                    "pin": "SPI:MOSI"
+                },
+                "miso": {
+                    "pin": "SPI:MISO"
+                },
+                "sclk": {
+                    "pin": "SPI:SCLK"
+                },
+                "sel": {
+                    "pin": "SPI:SEL"
+                },
+                "rst": {
+                    "pin": "SPI:RST"
+                },
+                "int": {
+                    "pin": "SPI:INT"
+                }
+            },
+            "gw": "10.42.0.1",
+            "ip": "192.168.66.16"
+        }
+    ],
+    "protocol": "UDP",
+    "linuxcnc": {
+        "machinetype": "mill",
+        "ini": {
+            "DISPLAY": {
+                "MAX_LINEAR_VELOCITY": 166.667,
+                "EDITOR": "nvim-qt",
+                "PROGRAM_PREFIX": "~/",
+                "DEFAULT_LINEAR_VELOCITY": 16.0
+            },
+            "TRAJ": {
+                "MAX_LINEAR_VELOCITY": 250.0
+            },
+            "EMCMOT": {
+                "SERVO_PERIOD": 500000
+            }
+        },
+        "gui": "probe_basic"
+    },
+    "modules": [
+        {
+            "slot": "SA",
+            "module": "rioctrl-spindle-v1.0",
+            "setup": {
+                "encoder-spindle-0": {
+                    "name": "encoder-spindle-0",
+                    "type": "quadencoderz"
+                },
+                "analogout-spindle-0": {
+                    "name": "analogout-spindle-0",
+                    "type": "pwmout"
+                },
+                "analogout-spindle-1": {
+                    "name": "analogout-spindle-1",
+                    "type": "pwmout"
+                },
+                "modbus-0": {
+                    "name": "modbus-0",
+                    "type": "modbus",
+                    "config": {
+                        "test": {
+                            "address": 1,
+                            "type": 3,
+                            "register": 0,
+                            "values": 1,
+                            "is_float": false,
+                            "scale": 1.0,
+                            "unit": "",
+                            "error_values": "",
+                            "format": "d",
+                            "timeout": 100,
+                            "delay": 60,
+                            "direction": "input"
+                        },
+                        "test2": {
+                            "address": 1,
+                            "type": 3,
+                            "register": 2,
+                            "values": 1,
+                            "is_float": false,
+                            "scale": 1.0,
+                            "unit": "",
+                            "error_values": "",
+                            "format": "d",
+                            "timeout": 100,
+                            "delay": 60,
+                            "direction": "input"
+                        }
+                    },
+                    "signals": {
+                        "test": {
+                            "net": "",
+                            "function": "",
+                            "setp": ""
+                        },
+                        "test_valid": {
+                            "net": "",
+                            "function": "",
+                            "setp": ""
+                        },
+                        "test_errors": {
+                            "net": "",
+                            "function": "",
+                            "setp": ""
+                        },
+                        "test2": {
+                            "net": "",
+                            "function": "",
+                            "setp": ""
+                        },
+                        "test2_valid": {
+                            "net": "",
+                            "function": "",
+                            "setp": ""
+                        },
+                        "test2_errors": {
+                            "net": "",
+                            "function": "",
+                            "setp": ""
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
